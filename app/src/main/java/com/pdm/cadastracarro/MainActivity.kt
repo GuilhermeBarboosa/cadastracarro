@@ -1,4 +1,4 @@
-package com.estudo.provapdm
+package com.pdm.cadastracarro
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.estudo.provapdm.model.Veiculo
 import com.estudo.provapdm.model.enum.TipoVeiculo
+import com.pdm.cadastracarro.Label
 import com.pdm.cadastracarro.model.ExposedDropMenuStateHolder
 import com.pdm.cadastracarro.model.rememberExposedMenuStateHolder
 import com.pdm.cadastracarro.ui.theme.CadastracarroTheme
@@ -68,7 +69,7 @@ fun BuildLayout() {
     }
     var model by remember { mutableStateOf(TextFieldValue("")) }
     var price by remember { mutableStateOf(TextFieldValue("")) }
-    var stateHolder = rememberExposedMenuStateHolder()
+
 
     CadastracarroTheme {
         // A surface container using the 'background' color from the theme
@@ -106,7 +107,7 @@ fun BuildLayout() {
                 }
 
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    ExposedDropdownMenu(stateHolder = stateHolder)
+                    Label()
                 }
 
 
@@ -223,33 +224,3 @@ fun DefaultPreview() {
     BuildLayout()
 }
 
-@Composable
-fun ExposedDropdownMenu(stateHolder: ExposedDropMenuStateHolder) {
-    Column {
-        Box {
-            OutlinedTextField(
-                value = stateHolder.value,
-                onValueChange = {},
-                label = { Text(text = "Label") },
-                trailingIcon = {
-                    Icon(painter = painterResource(id = stateHolder.icon),
-                        contentDescription = null,
-                        Modifier.clickable { stateHolder.onEnabled(!(stateHolder.enabled)) })
-                }, modifier = Modifier.onGloballyPositioned {
-                    stateHolder.onSize(it.size.toSize())
-                })
-            DropdownMenu(expanded = stateHolder.enabled, onDismissRequest = {
-                stateHolder.onEnabled(false)
-            }, modifier = Modifier.width(with(LocalDensity.current){stateHolder.size.width.toDp()})) {
-                stateHolder.itens.forEachIndexed { index, s ->
-                  DropdownMenuItem(onClick = {
-                      stateHolder.onSelectedIndex(index)
-                      stateHolder.onEnabled(false)
-                  }) {
-                        Text(text= s)
-                  }
-                }
-            }
-        }
-    }
-}
