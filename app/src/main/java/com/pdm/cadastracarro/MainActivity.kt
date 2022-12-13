@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -23,9 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,8 +37,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toSize
 import com.estudo.provapdm.model.Veiculo
 import com.estudo.provapdm.model.enum.TipoVeiculo
+import com.pdm.cadastracarro.model.ExposedDropMenuStateHolder
+import com.pdm.cadastracarro.model.rememberExposedMenuStateHolder
 import com.pdm.cadastracarro.ui.theme.CadastracarroTheme
 
 
@@ -49,41 +56,63 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun BuildLayout() {
-    var veiculoDisplayed by remember { mutableStateOf(Veiculo("Empty...", 0.0, TipoVeiculo.TRUCK, false)) }
-    var text by remember { mutableStateOf(TextFieldValue("")) }
+    var veiculoDisplayed by remember {
+        mutableStateOf(
+            Veiculo(
+                "Empty...",
+                0.0,
+                TipoVeiculo.TRUCK,
+                false
+            )
+        )
+    }
+    var model by remember { mutableStateOf(TextFieldValue("")) }
+    var price by remember { mutableStateOf(TextFieldValue("")) }
+    var stateHolder = rememberExposedMenuStateHolder()
+
     CadastracarroTheme {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colors.background
         ) {
+
+
             Column(modifier = Modifier.fillMaxWidth()) {
 
-                TextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = text,
-                    onValueChange = {
-                        text = it
-                    },
-                    label = { Text(text = "Model") },
-                    placeholder = { Text(text = "Digite o modelo") },
-                )
-            }
+                Row() {
 
-            Column(modifier = Modifier.fillMaxWidth()){
-                TextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = text,
-                    onValueChange = {
-                        text = it
-                    },
-                    label = { Text(text = "Your Label") },
-                    placeholder = { Text(text = "Your Placeholder/Hint") },
-                )
+                    TextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = model,
+                        label = { Text(text = "Model") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onValueChange = { it ->
+                            model = it
+                        }
+                    )
+                }
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    TextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = price,
+                        label = { Text(text = "Price") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onValueChange = { it ->
+                            price = it
+                        }
+                    )
+                }
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    ExposedDropdownMenu(stateHolder = stateHolder)
+                }
+
+
             }
 
         }
-
     }
 }
 
@@ -158,9 +187,10 @@ fun ContactItemView(veiculo: Veiculo, onClick: () -> Unit) {
 //            },
         elevation = 2.dp
     ) {
-        Row(modifier =
-        Modifier
-            .padding(8.dp)
+        Row(
+            modifier =
+            Modifier
+                .padding(8.dp)
         ) {
             Text(
                 text = veiculo.model,
@@ -191,4 +221,35 @@ fun ContactList(veiculos: List<Veiculo>, onClick: (veiculo: Veiculo) -> Unit) {
 @Composable
 fun DefaultPreview() {
     BuildLayout()
+}
+
+@Composable
+fun ExposedDropdownMenu(stateHolder: ExposedDropMenuStateHolder) {
+    Column {
+        Box {
+            OutlinedTextField(
+                value = stateHolder.value,
+                onValueChange = {},
+                label = { Text(text = "Label") },
+                trailingIcon = {
+                    Icon(painter = painterResource(id = stateHolder.icon),
+                        contentDescription = null,
+                        Modifier.clickable { stateHolder.onEnabled(!(stateHolder.enabled)) })
+                }, modifier = Modifier.onGloballyPositioned {
+                    stateHolder.onSize(it.size.toSize())
+                })
+            DropdownMenu(expanded = stateHolder.enabled, onDismissRequest = {
+                stateHolder.onEnabled(false)
+            }, modifier = Modifier.width(with(LocalDensity.current){stateHolder.size.width.toDp()})) {
+                stateHolder.itens.forEachIndexed { index, s ->
+                  DropdownMenuItem(onClick = {
+                      stateHolder.onSelectedIndex(index)
+                      stateHolder.onEnabled(false)
+                  }) {
+                        Text(text= s)
+                  }
+                }
+            }
+        }
+    }
 }
