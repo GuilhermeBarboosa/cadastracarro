@@ -13,7 +13,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,13 +76,8 @@ fun BuildLayout() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colors.onPrimary
         ) {
-
-
             Column(modifier = Modifier.fillMaxWidth()) {
-
                 Row() {
-
-
                     OutlinedTextField(
                         value = model,
                         onValueChange = { model = it},
@@ -96,7 +93,6 @@ fun BuildLayout() {
                             focusManger.clearFocus()
                         }),
                     )
-
                 }
 
                 Row() {
@@ -118,21 +114,37 @@ fun BuildLayout() {
                 }
 
                 Row(modifier = Modifier.fillMaxWidth()) {
-
                     Row {
                         var selectedName by rememberSaveable() {
                             mutableStateOf(TipoVeiculo.TRUCK.descricao)
                         }
-
                         Spinner(itemList = models, selectedItem = selectedName, onItemSelected = { selectedName = it})
                     }
-
-
                 }
 
-
+                Row( modifier = Modifier.padding(10.dp) ){
+                    Spacer(Modifier.weight(1f))
+                    Button(
+                        onClick = { /* ... */ },
+                        // Uses ButtonDefaults.ContentPadding by default
+                        contentPadding = PaddingValues(
+                            start = 20.dp,
+                            top = 12.dp,
+                            end = 20.dp,
+                            bottom = 12.dp
+                        )
+                    ) {
+                        // Inner content including an icon and a text label
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text("Adicionar")
+                        Icon(
+                            Icons.Filled.Add,
+                            contentDescription = "Favorite",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                    }
+                }
             }
-
         }
     }
 }
@@ -162,6 +174,7 @@ fun Spinner(itemList: List<TipoVeiculo>,
         DropdownMenu(expanded = expanded, onDismissRequest = {
             expanded = false
         }) {
+
             itemList.forEach{
                 DropdownMenuItem(onClick = {
                     expanded = false
