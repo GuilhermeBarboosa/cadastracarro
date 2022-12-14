@@ -6,14 +6,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,21 +27,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.estudo.provapdm.model.Veiculo
@@ -76,12 +69,12 @@ fun BuildLayout() {
     var price by remember { mutableStateOf(TextFieldValue("")) }
     val models = enumValues<TipoVeiculo>().toList()
     var selectedName by rememberSaveable() {
-        mutableStateOf(TipoVeiculo.TRUCK.descricao)
+        mutableStateOf(TipoVeiculo.TRUCK)
     }
-
-    //var contactDisplayed by remember { mutableStateOf(Veiculo("", 0.0, TipoVeiculo.TRUCK, false)) }
-
+    var vehiclesList = mutableListOf<Veiculo>()
+    var vehicleCreate by remember { mutableStateOf(Veiculo("", 0.0, TipoVeiculo.TRUCK, false)) }
     val focusManger = LocalFocusManager.current
+    var value = 1;
 
     CadastracarroTheme {
         // A surface container using the 'background' color from the theme
@@ -144,9 +137,9 @@ fun BuildLayout() {
                     Spacer(Modifier.weight(1f))
                     Button(
                         onClick = {
-                            registerVehicle(model, price, selectedName)
+                            vehicleCreate = registerVehicle(model, price, selectedName)
+                            vehiclesList = DaoVeiculosList(vehiclesList,vehicleCreate);
                         },
-                        // Uses ButtonDefaults.ContentPadding by default
                         contentPadding = PaddingValues(
                             start = 20.dp,
                             top = 12.dp,
@@ -154,7 +147,6 @@ fun BuildLayout() {
                             bottom = 12.dp
                         )
                     ) {
-                        // Inner content including an icon and a text label
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                         Text("Add")
                         Icon(
@@ -163,38 +155,43 @@ fun BuildLayout() {
                             modifier = Modifier.size(ButtonDefaults.IconSize)
                         )
                     }
-                }
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    val vehicles = mutableListOf<Veiculo>(
-                        Veiculo("Gol", 30.00, TipoVeiculo.HATCH, false),
-                        Veiculo("Gol", 30.00, TipoVeiculo.HATCH, false),
-                        Veiculo("Gol", 30.00, TipoVeiculo.HATCH, false),
-                        Veiculo("Gol", 30.00, TipoVeiculo.HATCH, false),
-                        Veiculo("Gol", 30.00, TipoVeiculo.HATCH, false),
-                        Veiculo("Gol", 30.00, TipoVeiculo.HATCH, false)
-                    )
-                    VeiculoList(vehicles) { veiculo ->
-                        veiculoDisplayed = veiculo
+
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        VeiculoList(vehiclesList) { veiculo ->
+                            veiculoDisplayed = veiculo
+                        }
                     }
+
                 }
+
             }
         }
     }
 }
 
-fun registerVehicle(model: TextFieldValue, price: TextFieldValue, selectedName: String) {
-    Log.d("Input Model: ", model.text);
-    Log.d("Input Price: ", price.text);
-    Log.d("Input Selected: ", selectedName);
+fun DaoVeiculosList(vehiclesList: MutableList<Veiculo>, vehicleCreate: Veiculo): MutableList<Veiculo> {
+    vehiclesList.add(vehicleCreate);
+    return vehiclesList;
 }
 
 
+fun registerVehicle(model: TextFieldValue, price: TextFieldValue, selectedName: TipoVeiculo): Veiculo {
+    Log.d("Input Model: ", model.text);
+    Log.d("Input Price: ", price.text);
+    Log.d("Input Selected: ", selectedName.descricao);
+
+    var objectVeiculo = Veiculo(model.text, price.text.toDouble(), selectedName, false);
+
+    Log.e("Objeto", objectVeiculo.toString());
+
+    return objectVeiculo;
+}
 
 @Composable
 fun Spinner(
     itemList: List<TipoVeiculo>,
-    selectedItem: String,
-    onItemSelected: (selectedItem: String) -> Unit
+    selectedItem: TipoVeiculo,
+    onItemSelected: (selectedItem: TipoVeiculo) -> Unit
 ) {
     var expanded by rememberSaveable() {
         mutableStateOf(false)
@@ -206,7 +203,7 @@ fun Spinner(
         expanded = true
     }) {
         Text(
-            text = selectedItem,
+            text = selectedItem.descricao,
             style = TextStyle(Color.Black),
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
@@ -225,7 +222,7 @@ fun Spinner(
         itemList.forEach {
             DropdownMenuItem(onClick = {
                 expanded = false
-                onItemSelected(it.descricao)
+                onItemSelected(it)
             }) {
                 Text(text = it.descricao, style = TextStyle(Color.Black))
             }
@@ -306,12 +303,8 @@ fun ProfileCard(veiculo: Veiculo) {
 @Composable
 fun VeiculoList(veiculos: List<Veiculo>, onClick: (veiculo: Veiculo) -> Unit) {
     LazyColumn {
-
         items(veiculos) { veiculo ->
             ProfileCard(veiculo)
-//            ContactItemView(veiculo) {
-//                onClick(veiculo)
-//            }
         }
     }
 }
