@@ -1,7 +1,8 @@
 package com.pdm.cadastracarro
 
+import android.content.Context
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
@@ -19,15 +20,12 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -71,7 +69,11 @@ fun BuildLayout() {
     var selectedName by rememberSaveable() {
         mutableStateOf(TipoVeiculo.TRUCK)
     }
-    var vehiclesList = mutableListOf<Veiculo>()
+    val mContext = LocalContext.current
+
+    val vehiclesList = remember {
+        mutableStateListOf<Veiculo>()
+    }
     var vehicleCreate by remember { mutableStateOf(Veiculo("", 0.0, TipoVeiculo.TRUCK, false)) }
     val focusManger = LocalFocusManager.current
     var value = 1;
@@ -137,8 +139,11 @@ fun BuildLayout() {
                     Spacer(Modifier.weight(1f))
                     Button(
                         onClick = {
-                            vehicleCreate = registerVehicle(model, price, selectedName)
-                            vehiclesList = DaoVeiculosList(vehiclesList,vehicleCreate);
+                            vehicleCreate = registerVehicle(model, price, selectedName, mContext)!!
+
+                            if(vehicleCreate!=null){
+                                vehiclesList.add(vehicleCreate);
+                            }
                         },
                         contentPadding = PaddingValues(
                             start = 20.dp,
@@ -156,12 +161,12 @@ fun BuildLayout() {
                         )
                     }
 
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        VeiculoList(vehiclesList) { veiculo ->
-                            veiculoDisplayed = veiculo
-                        }
-                    }
+                }
 
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    VeiculoList(vehiclesList) { veiculo ->
+                        veiculoDisplayed = veiculo
+                    }
                 }
 
             }
@@ -169,22 +174,20 @@ fun BuildLayout() {
     }
 }
 
-fun DaoVeiculosList(vehiclesList: MutableList<Veiculo>, vehicleCreate: Veiculo): MutableList<Veiculo> {
-    vehiclesList.add(vehicleCreate);
-    return vehiclesList;
-}
+fun registerVehicle(model: TextFieldValue, price: TextFieldValue, selectedName: TipoVeiculo, mContext: Context): Veiculo? {
 
+    //FAZER VERIFICACAO FUNCIONAL
+    if(model.text == null){
+        Toast.makeText(mContext, "Model empty", Toast.LENGTH_LONG).show()
+        return null;
+    }else if(price.text == null){
+        Toast.makeText(mContext, "Price empty", Toast.LENGTH_LONG).show()
+        return null;
+    }else{
+        var objectVeiculo = Veiculo(model.text, price.text.toDouble(), selectedName, false);
+        return objectVeiculo;
+    }
 
-fun registerVehicle(model: TextFieldValue, price: TextFieldValue, selectedName: TipoVeiculo): Veiculo {
-    Log.d("Input Model: ", model.text);
-    Log.d("Input Price: ", price.text);
-    Log.d("Input Selected: ", selectedName.descricao);
-
-    var objectVeiculo = Veiculo(model.text, price.text.toDouble(), selectedName, false);
-
-    Log.e("Objeto", objectVeiculo.toString());
-
-    return objectVeiculo;
 }
 
 @Composable
@@ -231,7 +234,7 @@ fun Spinner(
 }
 
 @Composable
-fun ProfileCard(veiculo: Veiculo) {
+fun VehicleCard(veiculo: Veiculo) {
     var expandDetails by remember { mutableStateOf(false) }
 
 
@@ -304,7 +307,7 @@ fun ProfileCard(veiculo: Veiculo) {
 fun VeiculoList(veiculos: List<Veiculo>, onClick: (veiculo: Veiculo) -> Unit) {
     LazyColumn {
         items(veiculos) { veiculo ->
-            ProfileCard(veiculo)
+            VehicleCard(veiculo)
         }
     }
 }
