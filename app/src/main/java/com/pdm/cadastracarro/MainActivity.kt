@@ -160,7 +160,6 @@ fun BuildLayout() {
                     }
                 }
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    ProfileCard(veiculoDisplayed)
                     val vehicles = mutableListOf<Veiculo>(
                         Veiculo("Gol", 30.00, TipoVeiculo.HATCH, false),
                         Veiculo("Gol", 30.00, TipoVeiculo.HATCH, false),
@@ -228,47 +227,36 @@ fun ProfileCard(veiculo: Veiculo) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp),
+            .padding(4.dp)
+            .clickable {
+                expandDetails = !expandDetails
+            },
         elevation = 4.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .clickable {
+                    expandDetails = !expandDetails
+                }
         ) {
-            ImageCard(100.dp, Modifier.align(Alignment.Start))
+//            ImageCard(100.dp, Modifier.align(Alignment.Start))
             Text(
-                text = veiculo.model,
+                text = "Model : " + veiculo.model,
                 textAlign = TextAlign.Center,
                 fontSize = 24.sp,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 modifier = Modifier.widthIn(0.dp, 250.dp)
+                            .clickable {
+                                expandDetails = !expandDetails
+                             }
             )
             Row(
                 modifier =
                 Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Text(
-                    text = veiculo.model,
-                    textAlign = TextAlign.Center,
-                    fontSize = 24.sp,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                    modifier = Modifier.widthIn(0.dp, 250.dp)
-                )
-                Text(
-                    text = if (expandDetails) "Menos detalhes" else "Mais detalhes",
-                    textAlign = TextAlign.Center,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF6E6E6E),
-                    modifier = Modifier
-                        .padding(horizontal = 8.dp)
-                        .clickable {
-                            expandDetails = !expandDetails
-                        }
-                )
             }
             AnimatedVisibility(
                 visible = expandDetails,
@@ -341,9 +329,10 @@ fun ContactItemView(veiculo: Veiculo, onClick: () -> Unit) {
 fun VeiculoList(veiculos: List<Veiculo>, onClick: (veiculo: Veiculo) -> Unit) {
     LazyColumn {
         items(veiculos) { veiculo ->
-            ContactItemView(veiculo) {
-                onClick(veiculo)
-            }
+            ProfileCard(veiculo)
+//            ContactItemView(veiculo) {
+//                onClick(veiculo)
+//            }
         }
     }
 }
