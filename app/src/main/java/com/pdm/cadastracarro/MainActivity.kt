@@ -1,11 +1,13 @@
 package com.pdm.cadastracarro
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -73,6 +75,9 @@ fun BuildLayout() {
     var model by remember { mutableStateOf(TextFieldValue("")) }
     var price by remember { mutableStateOf(TextFieldValue("")) }
     val models = enumValues<TipoVeiculo>().toList()
+    var selectedName by rememberSaveable() {
+        mutableStateOf(TipoVeiculo.TRUCK.descricao)
+    }
 
     //var contactDisplayed by remember { mutableStateOf(Veiculo("", 0.0, TipoVeiculo.TRUCK, false)) }
 
@@ -127,9 +132,7 @@ fun BuildLayout() {
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Row {
-                        var selectedName by rememberSaveable() {
-                            mutableStateOf(TipoVeiculo.TRUCK.descricao)
-                        }
+
                         Spinner(
                             itemList = models,
                             selectedItem = selectedName,
@@ -140,7 +143,9 @@ fun BuildLayout() {
                 Row(modifier = Modifier.padding(10.dp)) {
                     Spacer(Modifier.weight(1f))
                     Button(
-                        onClick = { /* ... */ },
+                        onClick = {
+                            registerVehicle(model, price, selectedName)
+                        },
                         // Uses ButtonDefaults.ContentPadding by default
                         contentPadding = PaddingValues(
                             start = 20.dp,
@@ -176,6 +181,13 @@ fun BuildLayout() {
         }
     }
 }
+
+fun registerVehicle(model: TextFieldValue, price: TextFieldValue, selectedName: String) {
+    Log.d("Input Model: ", model.text);
+    Log.d("Input Price: ", price.text);
+    Log.d("Input Selected: ", selectedName);
+}
+
 
 
 @Composable
@@ -224,6 +236,8 @@ fun Spinner(
 @Composable
 fun ProfileCard(veiculo: Veiculo) {
     var expandDetails by remember { mutableStateOf(false) }
+
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -233,101 +247,66 @@ fun ProfileCard(veiculo: Veiculo) {
             },
         elevation = 4.dp
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .clickable {
-                    expandDetails = !expandDetails
-                }
-        ) {
-//            ImageCard(100.dp, Modifier.align(Alignment.Start))
-            Text(
-                text = "Model : " + veiculo.model,
-                textAlign = TextAlign.Center,
-                fontSize = 24.sp,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-                modifier = Modifier.widthIn(0.dp, 250.dp)
-                            .clickable {
-                                expandDetails = !expandDetails
-                             }
-            )
-            Row(
-                modifier =
-                Modifier.align(Alignment.CenterHorizontally)
-            ) {
-            }
-            AnimatedVisibility(
-                visible = expandDetails,
-                enter = fadeIn(initialAlpha = 0f) + expandVertically(),
-                exit = fadeOut(animationSpec = tween(durationMillis = 250)) + shrinkVertically()
+
+        Column( modifier = Modifier.background(Color.Green).height(10.dp)) {
+            Text(text = "   ")
+        }
+
+        Row{
+
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .clickable {
+                        expandDetails = !expandDetails
+                    }
             ) {
                 Text(
-                    text = stringResource(
-                        id = R.string.description_text,
-                        veiculo.model, veiculo.price,
-                        veiculo.type.descricao, veiculo.sold
-                    ),
-                    modifier = Modifier.padding(8.dp)
+                    text = "Model: " + veiculo.model,
+                    textAlign = TextAlign.Center,
+                    fontSize = 24.sp,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .widthIn(0.dp, 250.dp)
+                        .clickable {
+                            expandDetails = !expandDetails
+                        }
                 )
+                Row(
+                    modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                }
+                AnimatedVisibility(
+                    visible = expandDetails,
+                    enter = fadeIn(initialAlpha = 0f) + expandVertically(),
+                    exit = fadeOut(animationSpec = tween(durationMillis = 250)) + shrinkVertically()
+                ) {
+                    Text(
+                        text = stringResource(
+                            id = R.string.description_text,
+                            veiculo.model, veiculo.price,
+                            veiculo.type.descricao, veiculo.sold
+                        ),
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
             }
         }
+
+
+
     }
 }
 
-@Composable
-fun ImageCard(size: Dp, modifier: Modifier = Modifier) {
-    Image(
-        painter = painterResource(id = R.drawable.gol),
-        contentDescription = stringResource(id = R.string.profile_picture),
-        modifier =
-        modifier
-            .clip(CircleShape)
-            .size(size)
-            .border(
-                0.5.dp,
-                Color(0xFF9E9E9E),
-                CircleShape
-            ),
-        contentScale = ContentScale.Crop
-    )
-}
-
-@Composable
-fun ContactItemView(veiculo: Veiculo, onClick: () -> Unit) {
-    Card(
-        modifier =
-        Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
-//            .clickable {
-//                onClick()
-//            },
-        elevation = 2.dp
-    ) {
-        Row(
-            modifier =
-            Modifier
-                .padding(8.dp)
-        ) {
-            Text(
-                text = veiculo.model,
-                fontSize = 20.sp,
-                modifier =
-                Modifier
-                    .align(Alignment.CenterVertically)
-                    .padding(horizontal = 8.dp),
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1
-            )
-        }
-    }
-}
 
 @Composable
 fun VeiculoList(veiculos: List<Veiculo>, onClick: (veiculo: Veiculo) -> Unit) {
     LazyColumn {
+
         items(veiculos) { veiculo ->
             ProfileCard(veiculo)
 //            ContactItemView(veiculo) {
