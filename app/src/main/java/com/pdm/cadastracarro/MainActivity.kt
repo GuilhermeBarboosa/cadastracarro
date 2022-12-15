@@ -2,6 +2,7 @@ package com.pdm.cadastracarro
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -139,10 +140,12 @@ fun BuildLayout() {
                     Spacer(Modifier.weight(1f))
                     Button(
                         onClick = {
-                            vehicleCreate = registerVehicle(model, price, selectedName, mContext)!!
+//                            vehicleCreate = !!
 
-                            if(vehicleCreate!=null){
-                                vehiclesList.add(vehicleCreate);
+
+
+                            if(registerVehicle(model, price, selectedName, mContext) != null){
+                                vehiclesList.add(registerVehicle(model, price, selectedName, mContext)!!);
                             }
                         },
                         contentPadding = PaddingValues(
@@ -177,17 +180,17 @@ fun BuildLayout() {
 fun registerVehicle(model: TextFieldValue, price: TextFieldValue, selectedName: TipoVeiculo, mContext: Context): Veiculo? {
 
     //FAZER VERIFICACAO FUNCIONAL
-    if(model.text == null){
+    if(model.text == ""){
         Toast.makeText(mContext, "Model empty", Toast.LENGTH_LONG).show()
         return null;
-    }else if(price.text == null){
+    }else if(price.text == ""){
         Toast.makeText(mContext, "Price empty", Toast.LENGTH_LONG).show()
         return null;
-    }else{
+    }else if(model.text != "" && price.text != ""){
         var objectVeiculo = Veiculo(model.text, price.text.toDouble(), selectedName, false);
         return objectVeiculo;
     }
-
+    return null;
 }
 
 @Composable
