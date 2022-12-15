@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -60,12 +59,14 @@ fun BuildLayout() {
             Veiculo(
                 "",
                 0.0,
+                0,
                 TipoVeiculo.HATCH,
                 false
             )
         )
     }
     var model by remember { mutableStateOf(TextFieldValue("")) }
+    var year by remember { mutableStateOf(TextFieldValue("")) }
     var price by remember { mutableStateOf(("")) }
     val models = enumValues<TipoVeiculo>().toList()
     var selectedName by rememberSaveable() {
@@ -76,7 +77,7 @@ fun BuildLayout() {
     val vehiclesList = remember {
         mutableStateListOf<Veiculo>()
     }
-    var vehicleCreate by remember { mutableStateOf(Veiculo("", 0.0, TipoVeiculo.TRUCK, false)) }
+//    var vehicleCreate by remember { mutableStateOf(Veiculo("", 0.0,0, TipoVeiculo.TRUCK, false)) }
     val focusManger = LocalFocusManager.current
     var value = 1;
 
@@ -99,6 +100,26 @@ fun BuildLayout() {
                         maxLines = 1,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(onDone = {
+                            focusManger.clearFocus()
+                        }),
+                    )
+                }
+
+                Row() {
+                    OutlinedTextField(
+                        onValueChange = { year = it },
+                        label = { Text("Year") },
+                        value = year,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth(),
+                        singleLine = true,
+                        maxLines = 1,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(onDone = {
@@ -143,11 +164,12 @@ fun BuildLayout() {
                     Spacer(Modifier.weight(1f))
                     Button(
                         onClick = {
-                            if (registerVehicle(model, price, selectedName, mContext) != null) {
+                            if (registerVehicle(model, price, year, selectedName, mContext) != null) {
                                 vehiclesList.add(
                                     registerVehicle(
                                         model,
                                         price,
+                                        year,
                                         selectedName,
                                         mContext
                                     )!!
@@ -186,6 +208,7 @@ fun BuildLayout() {
 fun registerVehicle(
     model: TextFieldValue,
     price: String,
+    year: TextFieldValue,
     selectedName: TipoVeiculo,
     mContext: Context
 ): Veiculo? {
@@ -196,7 +219,7 @@ fun registerVehicle(
         Toast.makeText(mContext, "Price empty", Toast.LENGTH_LONG).show()
         return null;
     } else if (model.text != "" && price != "") {
-        var objectVeiculo = Veiculo(model.text, price.toDouble(), selectedName, false);
+        var objectVeiculo = Veiculo(model.text, price.toDouble(), year.text.toInt(), selectedName, false);
         return objectVeiculo;
     }
     return null;
@@ -367,7 +390,9 @@ fun VehicleCard(veiculo: Veiculo) {
                     Text(
                         text = stringResource(
                             id = R.string.description_text,
-                            veiculo.model, "R$" + veiculo.price,
+                            veiculo.model,
+                            veiculo.year,
+                            "R$" + veiculo.price,
                             veiculo.type.descricao,
 
                             if (veiculo.sold) {

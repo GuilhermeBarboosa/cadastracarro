@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">cadastracarro</string>
     <string name="profile_picture">Profile picture</string>
-    <string name="description_text">Model: %s\nPrice: %s\nType: %s\nSold: %s</string>
+    <string name="description_text">Model: %s\nYear: %s\nPrice: %s\nType: %s\nSold: %s</string>
 </resources>
