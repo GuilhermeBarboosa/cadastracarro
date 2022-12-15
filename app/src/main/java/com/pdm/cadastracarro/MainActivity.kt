@@ -2,7 +2,6 @@ package com.pdm.cadastracarro
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -27,19 +27,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 import com.estudo.provapdm.model.Veiculo
 import com.estudo.provapdm.model.enum.TipoVeiculo
 import com.pdm.cadastracarro.ui.theme.CadastracarroTheme
+import java.text.NumberFormat
+import java.util.*
 
 
 class MainActivity : ComponentActivity() {
@@ -64,7 +66,7 @@ fun BuildLayout() {
         )
     }
     var model by remember { mutableStateOf(TextFieldValue("")) }
-    var price by remember { mutableStateOf(TextFieldValue("")) }
+    var price by remember { mutableStateOf(("")) }
     val models = enumValues<TipoVeiculo>().toList()
     var selectedName by rememberSaveable() {
         mutableStateOf(TipoVeiculo.TRUCK)
@@ -87,9 +89,9 @@ fun BuildLayout() {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row() {
                     OutlinedTextField(
-                        value = model,
                         onValueChange = { model = it },
                         label = { Text("Model") },
+                        value = model,
                         modifier = Modifier
                             .padding(10.dp)
                             .fillMaxWidth(),
@@ -107,21 +109,23 @@ fun BuildLayout() {
 
                 Row() {
                     OutlinedTextField(
-                        value = price,
-                        onValueChange = { price = it },
                         label = { Text("Price") },
                         modifier = Modifier
                             .padding(10.dp)
                             .fillMaxWidth(),
                         singleLine = true,
                         maxLines = 1,
-                        keyboardOptions = KeyboardOptions(
+                        value = price,
+                        onValueChange = { newText: String ->
+                            if (newText.length <= Long.MAX_VALUE.toString().length && newText.isDigitsOnly()) {
+                                price = newText
+                                //onValueChange(newText)
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done
                         ),
-                        keyboardActions = KeyboardActions(onDone = {
-                            focusManger.clearFocus()
-                        }),
+                        visualTransformation = NumberCommaTransformation(),
                     )
                 }
 
@@ -181,18 +185,18 @@ fun BuildLayout() {
 
 fun registerVehicle(
     model: TextFieldValue,
-    price: TextFieldValue,
+    price: String,
     selectedName: TipoVeiculo,
     mContext: Context
 ): Veiculo? {
     if (model.text == "") {
         Toast.makeText(mContext, "Model empty", Toast.LENGTH_LONG).show()
         return null;
-    } else if (price.text == "") {
+    } else if (price == "") {
         Toast.makeText(mContext, "Price empty", Toast.LENGTH_LONG).show()
         return null;
-    } else if (model.text != "" && price.text != "") {
-        var objectVeiculo = Veiculo(model.text, price.text.toDouble(), selectedName, false);
+    } else if (model.text != "" && price != "") {
+        var objectVeiculo = Veiculo(model.text, price.toDouble(), selectedName, false);
         return objectVeiculo;
     }
     return null;
@@ -240,6 +244,28 @@ fun Spinner(
         }
     }
 }
+
+
+// format long to 123,456,789,9
+class NumberCommaTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        return TransformedText(
+            text = AnnotatedString(text.text.toLongOrNull().formatWithComma()),
+            offsetMapping = object : OffsetMapping {
+                override fun originalToTransformed(offset: Int): Int {
+                    return text.text.toLongOrNull().formatWithComma().length
+                }
+
+                override fun transformedToOriginal(offset: Int): Int {
+                    return text.length
+                }
+            }
+        )
+    }
+}
+
+fun Long?.formatWithComma(): String =
+    NumberFormat.getNumberInstance(Locale.US).format(this ?: 0)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -341,7 +367,7 @@ fun VehicleCard(veiculo: Veiculo) {
                     Text(
                         text = stringResource(
                             id = R.string.description_text,
-                            veiculo.model, veiculo.price,
+                            veiculo.model, "R$" + veiculo.price,
                             veiculo.type.descricao,
 
                             if (veiculo.sold) {
