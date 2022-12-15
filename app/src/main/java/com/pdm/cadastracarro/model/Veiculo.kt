@@ -14,4 +14,10 @@ data class Veiculo(
     override fun toString(): String {
         return "Veiculo(model='$model', price=$price, type=$type, sold=$sold, id=$id)"
     }
+
+
+    @JvmName("setSold1")
+    fun setSold(newValue: Boolean){
+        sold = newValue;
+    }
 }

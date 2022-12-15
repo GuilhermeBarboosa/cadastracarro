@@ -8,9 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -34,6 +32,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -140,12 +139,15 @@ fun BuildLayout() {
                     Spacer(Modifier.weight(1f))
                     Button(
                         onClick = {
-//                            vehicleCreate = !!
-
-
-
-                            if(registerVehicle(model, price, selectedName, mContext) != null){
-                                vehiclesList.add(registerVehicle(model, price, selectedName, mContext)!!);
+                            if (registerVehicle(model, price, selectedName, mContext) != null) {
+                                vehiclesList.add(
+                                    registerVehicle(
+                                        model,
+                                        price,
+                                        selectedName,
+                                        mContext
+                                    )!!
+                                );
                             }
                         },
                         contentPadding = PaddingValues(
@@ -177,16 +179,19 @@ fun BuildLayout() {
     }
 }
 
-fun registerVehicle(model: TextFieldValue, price: TextFieldValue, selectedName: TipoVeiculo, mContext: Context): Veiculo? {
-
-    //FAZER VERIFICACAO FUNCIONAL
-    if(model.text == ""){
+fun registerVehicle(
+    model: TextFieldValue,
+    price: TextFieldValue,
+    selectedName: TipoVeiculo,
+    mContext: Context
+): Veiculo? {
+    if (model.text == "") {
         Toast.makeText(mContext, "Model empty", Toast.LENGTH_LONG).show()
         return null;
-    }else if(price.text == ""){
+    } else if (price.text == "") {
         Toast.makeText(mContext, "Price empty", Toast.LENGTH_LONG).show()
         return null;
-    }else if(model.text != "" && price.text != ""){
+    } else if (model.text != "" && price.text != "") {
         var objectVeiculo = Veiculo(model.text, price.text.toDouble(), selectedName, false);
         return objectVeiculo;
     }
@@ -236,47 +241,92 @@ fun Spinner(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun VehicleCard(veiculo: Veiculo) {
     var expandDetails by remember { mutableStateOf(false) }
+    var color by remember { mutableStateOf(Color.Green) }
 
+    if (!veiculo.sold) {
+        color = Color.Green;
+    } else {
+        color = Color.Red;
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)
-            .clickable {
-                expandDetails = !expandDetails
-            },
+            .combinedClickable(
+                onClick = {
+                    expandDetails = !expandDetails
+                },
+                onLongClick = {
+                    if (veiculo.sold) {
+                        veiculo.setSold(false);
+                    } else {
+                        veiculo.setSold(true);
+                    }
+                }
+            ),
         elevation = 4.dp
     ) {
 
-        Column( modifier = Modifier.background(Color.Green).height(10.dp)) {
+        Column( modifier = Modifier.background(
+            if (veiculo.sold) {
+                Color.Red
+            } else {
+                Color.Green
+            }
+        ).height(10.dp)) {
             Text(text = "   ")
         }
 
-        Row{
-
-
+        Row {
             Column(
+
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-                    .clickable {
-                        expandDetails = !expandDetails
-                    }
+                    .combinedClickable(
+                        onClick = {
+                            expandDetails = !expandDetails
+                        },
+                        onLongClick = {
+                            if (veiculo.sold) {
+                                veiculo.setSold(false);
+                            } else {
+                                veiculo.setSold(true);
+                            }
+                        }
+                    )
+
             ) {
                 Text(
                     text = "Model: " + veiculo.model,
+                    style =   if (veiculo.sold) {
+                        TextStyle(textDecoration = TextDecoration.LineThrough)
+                    } else {
+                        TextStyle(textDecoration = TextDecoration.None)
+                    },
                     textAlign = TextAlign.Center,
                     fontSize = 24.sp,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                     modifier = Modifier
                         .widthIn(0.dp, 250.dp)
-                        .clickable {
-                            expandDetails = !expandDetails
-                        }
+                        .combinedClickable(
+                            onClick = {
+                                expandDetails = !expandDetails
+                            },
+                            onLongClick = {
+                                if (veiculo.sold) {
+                                    veiculo.setSold(false);
+                                } else {
+                                    veiculo.setSold(true);
+                                }
+                            }
+                        )
                 )
                 Row(
                     modifier =
@@ -292,14 +342,20 @@ fun VehicleCard(veiculo: Veiculo) {
                         text = stringResource(
                             id = R.string.description_text,
                             veiculo.model, veiculo.price,
-                            veiculo.type.descricao, veiculo.sold
+                            veiculo.type.descricao,
+
+                            if (veiculo.sold) {
+                                "Yes"
+                            } else {
+                                "No"
+                            }
+
                         ),
                         modifier = Modifier.padding(8.dp)
                     )
                 }
             }
         }
-
 
 
     }
