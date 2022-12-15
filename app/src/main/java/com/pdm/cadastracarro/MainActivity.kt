@@ -20,14 +20,15 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.*
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -54,6 +55,22 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun BuildLayout() {
+
+
+    CadastracarroTheme {
+        // A surface container using the 'background' color from the theme
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colors.onPrimary
+        ) {
+             MainScreen()
+        }
+    }
+}
+
+@Composable
+public fun viewScreen(vehiclesList: SnapshotStateList<Veiculo>) {
+
     var veiculoDisplayed by remember {
         mutableStateOf(
             Veiculo(
@@ -73,136 +90,177 @@ fun BuildLayout() {
         mutableStateOf(TipoVeiculo.TRUCK)
     }
     val mContext = LocalContext.current
-
-    val vehiclesList = remember {
-        mutableStateListOf<Veiculo>()
-    }
-//    var vehicleCreate by remember { mutableStateOf(Veiculo("", 0.0,0, TipoVeiculo.TRUCK, false)) }
     val focusManger = LocalFocusManager.current
-    var value = 1;
 
-    CadastracarroTheme {
-        // A surface container using the 'background' color from the theme
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colors.onPrimary
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row() {
-                    OutlinedTextField(
-                        onValueChange = { model = it },
-                        label = { Text("Model") },
-                        value = model,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .fillMaxWidth(),
-                        singleLine = true,
-                        maxLines = 1,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(onDone = {
-                            focusManger.clearFocus()
-                        }),
-                    )
-                }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row() {
+            OutlinedTextField(
+                onValueChange = { model = it },
+                label = { Text("Model") },
+                value = model,
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth(),
+                singleLine = true,
+                maxLines = 1,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = {
+                    focusManger.clearFocus()
+                }),
+            )
+        }
 
-                Row() {
-                    OutlinedTextField(
-                        onValueChange = { year = it },
-                        label = { Text("Year") },
-                        value = year,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .fillMaxWidth(),
-                        singleLine = true,
-                        maxLines = 1,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(onDone = {
-                            focusManger.clearFocus()
-                        }),
-                    )
-                }
+        Row() {
+            OutlinedTextField(
+                onValueChange = { year = it },
+                label = { Text("Year") },
+                value = year,
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth(),
+                singleLine = true,
+                maxLines = 1,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = {
+                    focusManger.clearFocus()
+                }),
+            )
+        }
 
-                Row() {
-                    OutlinedTextField(
-                        label = { Text("Price") },
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .fillMaxWidth(),
-                        singleLine = true,
-                        maxLines = 1,
-                        value = price,
-                        onValueChange = { newText: String ->
-                            if (newText.length <= Long.MAX_VALUE.toString().length && newText.isDigitsOnly()) {
-                                price = newText
-                                //onValueChange(newText)
-                            }
-                        },
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                        ),
-                        visualTransformation = NumberCommaTransformation(),
-                    )
-                }
-
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Row {
-
-                        Spinner(
-                            itemList = models,
-                            selectedItem = selectedName,
-                            onItemSelected = { selectedName = it })
+        Row() {
+            OutlinedTextField(
+                label = { Text("Price") },
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth(),
+                singleLine = true,
+                maxLines = 1,
+                value = price,
+                onValueChange = { newText: String ->
+                    if (newText.length <= Long.MAX_VALUE.toString().length && newText.isDigitsOnly()) {
+                        price = newText
+                        //onValueChange(newText)
                     }
-                }
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                ),
+                visualTransformation = NumberCommaTransformation(),
+            )
+        }
 
-                Row(modifier = Modifier.padding(10.dp)) {
-                    Spacer(Modifier.weight(1f))
-                    Button(
-                        onClick = {
-                            if (registerVehicle(model, price, year, selectedName, mContext) != null) {
-                                vehiclesList.add(
-                                    registerVehicle(
-                                        model,
-                                        price,
-                                        year,
-                                        selectedName,
-                                        mContext
-                                    )!!
-                                );
-                            }
-                        },
-                        contentPadding = PaddingValues(
-                            start = 20.dp,
-                            top = 12.dp,
-                            end = 20.dp,
-                            bottom = 12.dp
-                        )
-                    ) {
-                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text("Add")
-                        Icon(
-                            Icons.Filled.Add,
-                            contentDescription = "Add",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Row {
 
-                }
-
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    VeiculoList(vehiclesList) { veiculo ->
-                        veiculoDisplayed = veiculo
-                    }
-                }
-
+                Spinner(
+                    itemList = models,
+                    selectedItem = selectedName,
+                    onItemSelected = { selectedName = it })
             }
         }
+
+        Row(modifier = Modifier.padding(10.dp)) {
+            Spacer(Modifier.weight(1f))
+            Button(
+                onClick = {
+                    if (registerVehicle(model, price, year, selectedName, mContext) != null) {
+                        vehiclesList.add(
+                            registerVehicle(
+                                model,
+                                price,
+                                year,
+                                selectedName,
+                                mContext
+                            )!!
+                        );
+                    }
+                },
+                contentPadding = PaddingValues(
+                    start = 20.dp,
+                    top = 12.dp,
+                    end = 20.dp,
+                    bottom = 12.dp
+                )
+            ) {
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text("Add")
+                Icon(
+                    Icons.Filled.Add,
+                    contentDescription = "Add",
+                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                )
+            }
+
+        }
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+            VeiculoList(vehiclesList) { veiculo ->
+                veiculoDisplayed = veiculo
+            }
+        }
+
     }
+}
+
+@Composable
+fun statisticsScreen(vehiclesList: SnapshotStateList<Veiculo>) {
+    var sold  = 0;
+    var available  = 0;
+
+        vehiclesList.forEach { veiculo ->
+            if(veiculo.sold){
+                sold += 1;
+            }else if(!veiculo.sold){
+                available+=1;
+            }
+        }
+
+        Column() {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth().padding(5.dp),
+                elevation = 10.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(15.dp)
+                ) {
+                    Text(
+                        buildAnnotatedString {
+                            append("Cars sold: ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.W900, color = Color(0xFF4552B8))
+                            ) {
+                                append(" " + sold)
+                            }
+                        }
+                    )
+                }
+            }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth().padding(5.dp),
+                elevation = 10.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(15.dp)
+                ) {
+                    Text(
+                        buildAnnotatedString {
+                            append("Available cars")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.W900, color = Color(0xFF4552B8))
+                            ) {
+                                append(" " + available)
+                            }
+                        }
+                    )
+                }
+            }
+        }
 }
 
 fun registerVehicle(
@@ -218,7 +276,10 @@ fun registerVehicle(
     } else if (price == "") {
         Toast.makeText(mContext, "Price empty", Toast.LENGTH_LONG).show()
         return null;
-    } else if (model.text != "" && price != "") {
+    }else if (year.text == "") {
+        Toast.makeText(mContext, "Year empty", Toast.LENGTH_LONG).show()
+        return null;
+    } else if (model.text != "" && price != "" && year.text != "") {
         var objectVeiculo = Veiculo(model.text, price.toDouble(), year.text.toInt(), selectedName, false);
         return objectVeiculo;
     }
@@ -321,13 +382,15 @@ fun VehicleCard(veiculo: Veiculo) {
         elevation = 4.dp
     ) {
 
-        Column( modifier = Modifier.background(
-            if (veiculo.sold) {
-                Color.Red
-            } else {
-                Color.Green
-            }
-        ).height(10.dp)) {
+        Column( modifier = Modifier
+            .background(
+                if (veiculo.sold) {
+                    Color.Red
+                } else {
+                    Color.Green
+                }
+            )
+            .height(10.dp)) {
             Text(text = "   ")
         }
 
