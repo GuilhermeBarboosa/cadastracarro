@@ -14,13 +14,13 @@ private val DarkColorPalette = darkColors(
 )
 
 private val LightColorPalette = lightColors(
-    primary = Purple500,
+    primary = Color.Black,
     primaryVariant = Purple700,
     secondary = Teal200,
     background = Color.White,
     surface = Color.White,
     onPrimary = Color.White,
-    onSecondary = Color.Black,
+    onSecondary = Color.White,
     onBackground = Color.Black,
     onSurface = Color.Black,
 
@@ -31,12 +31,8 @@ fun CadastracarroTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-//    val colors = if (darkTheme) {
-//        DarkColorPalette
-//    } else {
-    val colors = LightColorPalette
-//    }
 
+    val colors = LightColorPalette
     MaterialTheme(
         colors = colors,
         typography = Typography,

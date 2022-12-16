@@ -1,5 +1,6 @@
 package com.pdm.cadastracarro
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.text.isDigitsOnly
 import com.estudo.provapdm.model.Veiculo
 import com.estudo.provapdm.model.enum.TipoVeiculo
@@ -46,6 +48,8 @@ import java.util.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        this.window.statusBarColor = ContextCompat.getColor(this,R.color.black)
+
         super.onCreate(savedInstanceState)
         setContent {
             BuildLayout()
@@ -56,14 +60,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun BuildLayout() {
 
-
     CadastracarroTheme {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colors.onPrimary
         ) {
-             MainScreen()
+            MainScreen()
         }
     }
 }
@@ -415,7 +418,7 @@ fun VehicleCard(veiculo: Veiculo) {
 
             ) {
                 Text(
-                    text = "Model: " + veiculo.model,
+                    text = "${veiculo.model} ${veiculo.year}",
                     style =   if (veiculo.sold) {
                         TextStyle(textDecoration = TextDecoration.LineThrough)
                     } else {
